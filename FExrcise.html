@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Finger Exercise Web | Musical Trainer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none; /* avoid accidental selection on taps */
+    }
+
+    body {
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(145deg, #10151c 0%, #1a232f 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #f0f3fa;
+    }
+
+    /* main container */
+    .app-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 2rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* ========== HEADER (navbar) ========== */
+    .navbar {
+      background: rgba(10, 20, 30, 0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 0.8rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+    .navbar h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f0b27a, #d4af7a);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .navbar p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    /* ========== MAIN LAYOUT ========== */
+    .main-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* 3 LARGE BUTTONS ROW */
+    .buttons-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 1rem 0;
+    }
+    .finger-btn {
+      flex: 1;
+      min-width: 110px;
+      background: radial-gradient(circle at 30% 20%, #ffffff, #e0e5ec);
+      border: none;
+      border-radius: 3rem;
+      padding: 1.8rem 0.5rem;
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #1e2a36;
+      cursor: pointer;
+      transition: all 0.12s linear;
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255,255,255,0.6);
+      text-align: center;
+      font-family: monospace;
+      letter-spacing: 2px;
+      backdrop-filter: blur(2px);
+    }
+    .finger-btn:active {
+      transform: scale(0.94);
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4);
+      transition: 0.02s;
+    }
+    /* distinct colors for each button */
+    .btn-1 { background: radial-gradient(circle at 30% 35%, #ffb347, #ff6b4a); color: white; box-shadow: 0 12px 20px rgba(255, 80, 40, 0.3); }
+    .btn-2 { background: radial-gradient(circle at 30% 35%, #4caf50, #2e7d32); color: white; box-shadow: 0 12px 20px rgba(76, 175, 80, 0.3);}
+    .btn-3 { background: radial-gradient(circle at 30% 35%, #42a5f5, #1e4bd2); color: white; box-shadow: 0 12px 20px rgba(66, 165, 245, 0.3);}
+    
+    /* animation class for extra feedback */
+    .btn-pop {
+      animation: buttonPop 0.18s ease-out;
+    }
+    @keyframes buttonPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.92); filter: brightness(1.2);}
+      100% { transform: scale(1); }
+    }
+
+    /* SEQUENCE BUILDER SECTION */
+    .builder-card {
+      background: rgba(20, 30, 45, 0.65);
+      backdrop-filter: blur(10px);
+      border-radius: 2rem;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.2s;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .sequence-display {
+      background: #0a111c;
+      border-radius: 2rem;
+      padding: 1rem 1.2rem;
+      margin: 1rem 0;
+      min-height: 80px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.3rem;
+      font-weight: bold;
+      letter-spacing: 4px;
+      word-break: break-all;
+      border: 1px solid #2c3e4e;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+      color: #ffd966;
+    }
+    .empty-seq {
+      color: #6c86a3;
+      font-style: italic;
+      font-weight: normal;
+    }
+    .builder-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 1rem 0 0.5rem;
+    }
+    .sec-btn {
+      background: #2c3e50;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: 0.1s;
+      font-size: 0.9rem;
+      backdrop-filter: blur(4px);
+    }
+    .sec-btn:active { transform: scale(0.96); background: #1e2f3f; }
+    .start-btn {
+      background: linear-gradient(95deg, #f0a34b, #e07c2c);
+      box-shadow: 0 5px 12px rgba(224, 124, 44, 0.4);
+      font-size: 1.2rem;
+      padding: 0.8rem 2rem;
+    }
+    .cancel-exercise {
+      background: #6c2e2e;
+      border: 1px solid #ff8a5c;
+    }
+    .danger-btn {
+      background: #3a2a2a;
+      color: #ffaa88;
+    }
+    .timer-progress {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 1rem;
+      background: #0f1722;
+      padding: 0.8rem 1.2rem;
+      border-radius: 2rem;
+    }
+    .info-badge {
+      background: #00000055;
+      border-radius: 2rem;
+      padding: 0.3rem 1rem;
+      font-weight: 500;
+    }
+    .mode-indicator {
+      font-weight: bold;
+      color: #f7b05e;
+    }
+
+    /* footer */
+    .footer {
+      text-align: center;
+      padding: 1.2rem;
+      background: rgba(0, 0, 0, 0.3);
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      font-weight: 400;
+    }
+
+    /* popup messages */
+    .toast-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #1e2a3e;
+      backdrop-filter: blur(20px);
+      padding: 0.9rem 2rem;
+      border-radius: 60px;
+      color: #ffefcf;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border-left: 6px solid #f5a623;
+      transition: opacity 0.2s, transform 0.2s;
+      opacity: 0;
+      pointer-events: none;
+      font-size: 1rem;
+    }
+    .congrats-toast {
+      border-left: 6px solid #6fcf97;
+      background: #2a4b2e;
+      color: #e9f5e9;
+    }
+
+    /* responsive */
+    @media (max-width: 680px) {
+      .app-container {
+        padding: 0.8rem 1rem 1.5rem;
+      }
+      .finger-btn {
+        font-size: 2rem;
+        padding: 1.2rem 0.2rem;
+        min-width: 80px;
+      }
+      .sequence-display {
+        font-size: 1rem;
+        letter-spacing: 2px;
+      }
+      .navbar h1 {
+        font-size: 1.5rem;
+      }
+    }
+    button:disabled {
+      opacity: 0.5;
+      transform: none;
+      cursor: not-allowed;
+      filter: grayscale(0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Header / Navbar -->
+  <div class="navbar">
+    <h1>🎵 Finger Exercise Web</h1>
+    <p>train muscle memory | piano · guitar | build & repeat</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- 3 Giant interactive buttons -->
+    <div class="buttons-panel">
+      <button class="finger-btn btn-1" data-value="1">⚡ 1</button>
+      <button class="finger-btn btn-2" data-value="2">🎸 2</button>
+      <button class="finger-btn btn-3" data-value="3">🎹 3</button>
+    </div>
+
+    <!-- Sequence Builder & Control Panel -->
+    <div class="builder-card">
+      <div class="section-title">
+        <span>📝 CUSTOM SEQUENCE (max 40)</span>
+        <span class="info-badge" id="seqLengthBadge">0 / 40</span>
+      </div>
+
+      <div class="sequence-display" id="sequenceDisplay">
+        <span class="empty-seq">✨ click buttons 1-2-3 to build ✨</span>
+      </div>
+
+      <div class="builder-actions">
+        <button class="sec-btn" id="clearSeqBtn">🗑️ Clear all</button>
+        <button class="sec-btn" id="removeLastBtn">↩️ Remove last</button>
+        <button class="sec-btn start-btn" id="startExerciseBtn">🎯 START EXERCISE</button>
+        <button class="sec-btn cancel-exercise" id="cancelExerciseBtn" style="display: none;">❌ Cancel session</button>
+      </div>
+
+      <!-- Progress & Timer (exercise mode) -->
+      <div class="timer-progress">
+        <div>📍 <span id="progressText">Step 0 / 0</span></div>
+        <div>⏱️ <span id="timerText">0.00 s</span></div>
+        <div>🎮 Mode: <span id="modeLabel" class="mode-indicator">Building</span></div>
+      </div>
+
+      <!-- Keyboard Bindings Info -->
+      <div style="margin-top: 1rem; padding: 0.8rem 1.2rem; background: #0f1722; border-radius: 2rem; font-size: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <strong>⌨️ Keyboard Bindings:</strong> <span id="keyBindingInfo" style="color: #a0c4ff; margin-left: 0.5rem;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Krushna Sandip Surase
+</div>
+
+<!-- floating popup container -->
+<div id="toastMsg" class="toast-message">⚠️ Message</div>
+
+<script>
+  // ------------------- DOM Elements -------------------
+  const btn1 = document.querySelector('[data-value="1"]');
+  const btn2 = document.querySelector('[data-value="2"]');
+  const btn3 = document.querySelector('[data-value="3"]');
+  const startBtn = document.getElementById('startExerciseBtn');
+  const clearSeqBtn = document.getElementById('clearSeqBtn');
+  const removeLastBtn = document.getElementById('removeLastBtn');
+  const cancelExerciseBtn = document.getElementById('cancelExerciseBtn');
+  const sequenceDisplayDiv = document.getElementById('sequenceDisplay');
+  const seqLengthBadge = document.getElementById('seqLengthBadge');
+  const progressTextSpan = document.getElementById('progressText');
+  const timerTextSpan = document.getElementById('timerText');
+  const modeLabelSpan = document.getElementById('modeLabel');
+
+  // ------------------- Keyboard Mapping Configuration -------------------
+  // Map keyboard keys to button values. Modify these as needed!
+  // Examples: 'KeyZ', 'KeyX', 'KeyC' for QWERTY, or '1', '2', '3' for numbers
+  // More key names: 'ArrowLeft', 'ArrowRight', 'Space', 'KeyA', etc.
+  const keyMapping = {
+    'Digit1': 1,      // Press "1" key → Button 1
+    'Digit2': 2,      // Press "2" key → Button 2
+    'Digit3': 3,      // Press "3" key → Button 3
+    // Add or replace with your preferred keys:
+    // 'KeyZ': 1,       // Press "Z" key → Button 1
+    // 'KeyX': 2,       // Press "X" key → Button 2
+    // 'KeyC': 3,       // Press "C" key → Button 3
+  };
+
+  // ------------------- State -------------------
+  let targetSequence = [];        // array of numbers (1,2,3)
+  const MAX_LEN = 40;
+
+  // Exercise state
+  let exerciseActive = false;
+  let currentStepIndex = 0;       // next expected index (0-based)
+  let exerciseTimerInterval = null;
+  let exerciseStartTime = 0;       // performance timestamp
+  let currentTimerSeconds = 0;
+
+  // Audio feedback (web audio)
+  let audioCtx = null;
+  let audioInitialized = false;
+
+  // ------------------- Helper: show popup messages (nice toast) -------------
+  function showMessage(text, isError = true, isCongrats = false) {
+    const toast = document.getElementById('toastMsg');
+    toast.textContent = text;
+    toast.classList.remove('congrats-toast');
+    if (isCongrats) {
+      toast.classList.add('congrats-toast');
+    } else {
+      // default style orange left border for errors/warnings
+      toast.style.borderLeftColor = isError ? '#f5a623' : '#4caf50';
+      if (!isError && !isCongrats) toast.style.borderLeftColor = '#4caf50';
+    }
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) scale(1)';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) scale(0.9)';
+    }, 2400);
+  }
+
+  // warning helper
+  function showWarning(msg) { showMessage(msg, true, false); }
+  function showSuccess(msg, isCongrats = true) { showMessage(msg, false, isCongrats); }
+
+  // ------------------- Sound feedback (musical tones) -------------------
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  function playTone(frequency, duration = 0.18, volume = 0.25) {
+    try {
+      if (!audioCtx) {
+        initAudio();
+      }
+      // resume if suspended (browser autoplay policy)
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+          actuallyPlayTone(frequency, duration, volume);
+        }).catch(e => console.log("audio resume failed", e));
+      } else {
+        actuallyPlayTone(frequency, duration, volume);
+      }
+    } catch(e) { console.log("audio error", e); }
+  }
+
+  function actuallyPlayTone(frequency, duration, volume) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = frequency;
+    gain.gain.value = volume;
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(now + duration);
+  }
+
+  // map button value to pleasant frequency (musical)
+  function getFrequencyFromButton(val) {
+    if (val === 1) return 523.25;   // C5
+    if (val === 2) return 587.33;   // D5
+    if (val === 3) return 659.25;   // E5
+    return 440;
+  }
+
+  // button visual feedback + sound
+  function animateButton(btnElement) {
+    if (!btnElement) return;
+    btnElement.classList.add('btn-pop');
+    setTimeout(() => btnElement.classList.remove('btn-pop'), 180);
+  }
+
+  // play feedback for any button press (exercise or build)
+  function playButtonFeedback(buttonValue, domBtn) {
+    const freq = getFrequencyFromButton(buttonValue);
+    playTone(freq, 0.15, 0.2);
+    animateButton(domBtn);
+  }
+
+  // ------------------- UI update for sequence display & badge -------------------
+  function updateSequenceUI() {
+    const len = targetSequence.length;
+    seqLengthBadge.innerText = `${len} / ${MAX_LEN}`;
+    if (len === 0) {
+      sequenceDisplayDiv.innerHTML = `<span class="empty-seq">✨ click buttons 1-2-3 to build ✨</span>`;
+    } else {
+      const seqStr = targetSequence.join('  →  ');
+      sequenceDisplayDiv.innerHTML = `<strong>🎼 ${seqStr}</strong>`;
+    }
+  }
+
+  // add to sequence (builder mode)
+  function addToSequence(value) {
+    if (exerciseActive) return; // safety: should not be callable when active
+    if (targetSequence.length >= MAX_LEN) {
+      showWarning(`Maximum sequence length is ${MAX_LEN}! Remove some steps.`);
+      return false;
+    }
+    targetSequence.push(value);
+    updateSequenceUI();
+    return true;
+  }
+
+  // clear full sequence
+  function clearSequence() {
+    if (exerciseActive) return;
+    targetSequence = [];
+    updateSequenceUI();
+    // also reset any leftover progress display if needed
+    if (!exerciseActive) {
+      progressTextSpan.innerText = `Step 0 / 0`;
+    }
+  }
+
+  function removeLastStep() {
+    if (exerciseActive) return;
+    if (targetSequence.length > 0) {
+      targetSequence.pop();
+      updateSequenceUI();
+    } else {
+      showWarning("Sequence is empty, nothing to remove.");
+    }
+  }
+
+  // ------------------- Exercise logic & timer -------------------
+  function stopTimerAndReset() {
+    if (exerciseTimerInterval) {
+      clearInterval(exerciseTimerInterval);
+      exerciseTimerInterval = null;
+    }
+    exerciseStartTime = 0;
+    currentTimerSeconds = 0;
+    timerTextSpan.innerText = `0.00 s`;
+  }
+
+  function startTimer() {
+    stopTimerAndReset();
+    exerciseStartTime = performance.now();
+    exerciseTimerInterval = setInterval(() => {
+      if (!exerciseActive) return;
+      const now = performance.now();
+      const elapsed = (now - exerciseStartTime) / 1000;
+      currentTimerSeconds = elapsed;
+      timerTextSpan.innerText = `${elapsed.toFixed(2)} s`;
+    }, 100);
+  }
+
+  // update progress display (step X of total)
+  function updateProgressDisplay() {
+    const total = targetSequence.length;
+    if (!exerciseActive) {
+      progressTextSpan.innerText = `Step 0 / ${total}`;
+    } else {
+      progressTextSpan.innerText = `Step ${currentStepIndex} / ${total}`;
+    }
+  }
+
+  // enable / disable UI depending on exercise mode
+  function setExerciseMode(active) {
+    exerciseActive = active;
+    if (active) {
+      // entering exercise
+      modeLabelSpan.innerText = "Exercise 🔥";
+      modeLabelSpan.style.color = "#f9b043";
+      startBtn.disabled = true;
+      clearSeqBtn.disabled = true;
+      removeLastBtn.disabled = true;
+      cancelExerciseBtn.style.display = "inline-flex";
+      // hide start button style? we keep but disabled, show cancel
+    } else {
+      // back to building
+      modeLabelSpan.innerText = "Building";
+      modeLabelSpan.style.color = "#f7b05e";
+      startBtn.disabled = false;
+      clearSeqBtn.disabled = false;
+      removeLastBtn.disabled = false;
+      cancelExerciseBtn.style.display = "none";
+      // reset progress to show total steps, but not active exercise
+      const totalLen = targetSequence.length;
+      progressTextSpan.innerText = `Step 0 / ${totalLen}`;
+      // also if any leftover timer stopped already
+    }
+    updateSequenceUI(); // ensure no visual glitch
+  }
+
+  // cancel current exercise manually
+  function cancelExercise() {
+    if (!exerciseActive) return;
+    // stop session
+    stopTimerAndReset();
+    exerciseActive = false;
+    currentStepIndex = 0;
+    setExerciseMode(false);
+    updateProgressDisplay();
+    showMessage("Exercise cancelled. You can edit sequence.", false, false);
+  }
+
+  // called when wrong press
+  function handleWrongPress(pressedVal) {
+    if (!exerciseActive) return;
+    // Stop immediately
+    stopTimerAndReset();
+    const wasActive = exerciseActive;
+    exerciseActive = false;
+    currentStepIndex = 0;
+    setExerciseMode(false);
+    updateProgressDisplay();
+    showWarning(`❌ Wrong sequence! You pressed ${pressedVal} but expected ${targetSequence[currentStepIndex]}. Try again.`);
+  }
+
+  // called on correct step
+  function handleCorrectStep() {
+    currentStepIndex++;
+    updateProgressDisplay();
+
+    if (currentStepIndex === targetSequence.length) {
+      // COMPLETE!
+      stopTimerAndReset();
+      const completionTime = currentTimerSeconds;
+      exerciseActive = false;
+      setExerciseMode(false);
+      currentStepIndex = 0;
+      updateProgressDisplay();
+      showSuccess(`🎉 Great job! You completed the exercise! 🎉  (${completionTime.toFixed(2)} seconds)`, true);
+    }
+  }
+
+  // process user button press during exercise
+  function processExercisePress(pressedValue) {
+    if (!exerciseActive) return false;
+    const expected = targetSequence[currentStepIndex];
+    if (pressedValue !== expected) {
+      handleWrongPress(pressedValue);
+      return false;
+    } else {
+      handleCorrectStep();
+      return true;
+    }
+  }
+
+  // ------------------- main button handler (both modes) -------------------
+  function onMainButtonClick(buttonValue, domElement) {
+    // 1. always play sound & animation
+    playButtonFeedback(buttonValue, domElement);
+
+    // 2. if exercise active => process exercise check
+    if (exerciseActive) {
+      processExercisePress(buttonValue);
+    } else {
+      // building mode: add to sequence
+      addToSequence(buttonValue);
+    }
+  }
+
+  // start exercise routine
+  function startExercise() {
+    if (exerciseActive) {
+      showWarning("Exercise already active! Cancel first if needed.");
+      return;
+    }
+    if (targetSequence.length === 0) {
+      showWarning("Please build a sequence first (use buttons 1,2,3).");
+      return;
+    }
+    // reset exercise state
+    currentStepIndex = 0;
+    // set active mode
+    setExerciseMode(true);
+    // start timer fresh
+    startTimer();
+    updateProgressDisplay();
+    // small feedback
+    showMessage(`🎯 Exercise started! Follow the sequence (${targetSequence.length} steps)`, false, false);
+  }
+
+  // ------------------- Event binding & initializations -------------------
+  function bindEvents() {
+    btn1.addEventListener('click', () => onMainButtonClick(1, btn1));
+    btn2.addEventListener('click', () => onMainButtonClick(2, btn2));
+    btn3.addEventListener('click', () => onMainButtonClick(3, btn3));
+    startBtn.addEventListener('click', startExercise);
+    clearSeqBtn.addEventListener('click', clearSequence);
+    removeLastBtn.addEventListener('click', removeLastStep);
+    cancelExerciseBtn.addEventListener('click', cancelExercise);
+
+    // ========== Keyboard Support ==========
+    document.addEventListener('keydown', (event) => {
+      const mappedButtonValue = keyMapping[event.code];
+      if (mappedButtonValue !== undefined) {
+        event.preventDefault(); // prevent default key behavior
+        // Find the corresponding button element and trigger click
+        const buttons = [btn1, btn2, btn3];
+        const correspondingBtn = buttons[mappedButtonValue - 1];
+        if (correspondingBtn) {
+          onMainButtonClick(mappedButtonValue, correspondingBtn);
+        }
+      }
+    });
+  }
+
+  // preload audio on first user tap (any button) to comply with autoplay
+  function preloadAudioOnFirstInteraction() {
+    const enableAudio = () => {
+      if (!audioCtx) {
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+    };
+    document.addEventListener('click', enableAudio);
+    document.addEventListener('touchstart', enableAudio);
+  }
+
+  // Additional: reset mode on page ready, ensure footer and styles
+  function init() {
+    bindEvents();
+    preloadAudioOnFirstInteraction();
+    updateSequenceUI();
+    setExerciseMode(false);
+    progressTextSpan.innerText = `Step 0 / 0`;
+    timerTextSpan.innerText = `0.00 s`;
+    displayKeyBindings();
+  }
+
+  // Display current keyboard bindings in UI
+  function displayKeyBindings() {
+    const bindingInfo = document.getElementById('keyBindingInfo');
+    const mappings = [];
+    for (const [keyCode, buttonValue] of Object.entries(keyMapping)) {
+      mappings.push(`<span style="background: rgba(160, 196, 255, 0.15); padding: 0.2rem 0.6rem; border-radius: 0.5rem; margin-right: 0.5rem;">${keyCode} → Button ${buttonValue}</span>`);
+    }
+    if (mappings.length === 0) {
+      bindingInfo.innerHTML = '<span style="color: #ff8a5c;">No keyboard bindings configured</span>';
+    } else {
+      bindingInfo.innerHTML = mappings.join(' ');
+    }
+  }
+
+  // call init after dom ready
+  window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
